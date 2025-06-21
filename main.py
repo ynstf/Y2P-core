@@ -1,6 +1,8 @@
-from download_transcript import get_youtube_transcript as transcript
-from generate_manifest import generate_manifest_from_transcript as generate_manifest
-from scaffold_project import scaffold
+from services.download_transcript import get_youtube_transcript as transcript
+from services.generate_manifest import (
+    generate_manifest_from_transcript as generate_manifest,
+)
+from services.scaffold_project import scaffold
 
 
 def main():

@@ -1,5 +1,6 @@
 import requests
 from urllib.parse import urlparse
+import os
 
 
 def get_youtube_transcript(youtube_url):
@@ -55,7 +56,13 @@ def get_youtube_transcript(youtube_url):
             for segment in transcripts[lang]["custom"]:
                 full_transcript += segment["text"] + " "
 
-            file = open(r"output\\transcript.txt", "w")
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            file_path_transcript = os.path.join(
+                current_dir, "..", "output", "transcript.txt"
+            )
+            file_path_transcript = os.path.normpath(file_path_transcript)
+
+            file = open(file_path_transcript, "w")
             file.write(full_transcript.strip())
             file.close()
             return full_transcript.strip()

@@ -1,8 +1,14 @@
 import os
 import shutil
+from pathlib import Path
 
 
-def scaffold(manifest, target_dir=r"output\\final_project"):
+def scaffold(manifest, task_id):
+    # Get the current script directory
+    current_dir = Path(__file__).resolve().parent
+    file_path_final_project = current_dir.parent / "output" / f"{task_id}_project"
+    target_dir = file_path_final_project
+
     # 1. Clean and recreate the target dir
     if os.path.exists(target_dir):
         shutil.rmtree(target_dir)

@@ -3,22 +3,21 @@ import sys
 from game import Game
 from colors import Colors
 
+
 pygame.init()
 title_font = pygame.font.Font(None, 40)
 
+GAME_UPDATE = pygame.USEREVENT
+pygame.time.set_timer(GAME_UPDATE, 200)
 
 screen = pygame.display.set_mode((500, 620))
 pygame.display.set_caption("Python Tetris")
 
 clock = pygame.time.Clock()
 
-GAME_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(GAME_UPDATE, 200)
-
 game = Game()
 
 while True:
-    screen.fill(Colors.dark_blue)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -38,8 +37,10 @@ while True:
                 game.rotate()
         if event.type == GAME_UPDATE and game.game_over == False:
             game.move_down()
-    
+
+    # Drawing
+    screen.fill(Colors.dark_blue)
     game.draw(screen)
-    
+
     pygame.display.update()
     clock.tick(60)

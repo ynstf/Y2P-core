@@ -3,14 +3,22 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
+from pathlib import Path
+
+# Get the current script directory
+current_dir = Path(__file__).resolve().parent
+# Go up one level and into "output/transcript.txt"
+file_path_transcript = current_dir.parent / "output" / "transcript.txt"
+file_path_manifest = current_dir.parent / "output" / "manifest.json"
+
 
 # ─── Load env vars ─────────────────────────────────────────────────────────────
 load_dotenv()
 
 
 def generate_manifest_from_transcript(
-    transcript_path: str = r"output\\transcript.txt",
-    output_path: str = r"output\\manifest.json",
+    transcript_path: str = file_path_transcript,
+    output_path: str = file_path_manifest,
 ) -> dict:
     # Configure with explicit settings
     api_key = os.getenv("GEMINI_API_KEY")
