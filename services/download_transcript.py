@@ -2,7 +2,7 @@ import requests
 
 # from urllib.parse import urlparse
 import os
-from extract_youtube_id import extract_id
+from .extract_youtube_id import extract_id
 
 
 def get_youtube_transcript(youtube_url):
