@@ -1,11 +1,14 @@
 import requests
-from urllib.parse import urlparse
+
+# from urllib.parse import urlparse
 import os
+from extract_youtube_id import extract_id
 
 
 def get_youtube_transcript(youtube_url):
     # Extract video ID from YouTube URL
-    video_id = urlparse(youtube_url).path.split("/")[-1]
+    # video_id = urlparse(youtube_url).path.split("/")[-1]
+    video_id = extract_id(youtube_url)
 
     # API endpoint and parameters
     api_url = "https://notegpt.io/api/v2/video-transcript"
