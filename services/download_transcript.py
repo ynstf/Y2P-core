@@ -56,15 +56,15 @@ def get_youtube_transcript(youtube_url):
             for segment in transcripts[lang]["custom"]:
                 full_transcript += segment["text"] + " "
 
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            file_path_transcript = os.path.join(
-                current_dir, "..", "output", "transcript.txt"
-            )
-            file_path_transcript = os.path.normpath(file_path_transcript)
+            # FIXED: Use /tmp instead of output directory
+            file_path_transcript = "/tmp/transcript.txt"
 
-            file = open(file_path_transcript, "w")
-            file.write(full_transcript.strip())
-            file.close()
+            # Ensure the /tmp directory exists (it should, but just in case)
+            os.makedirs(os.path.dirname(file_path_transcript), exist_ok=True)
+
+            with open(file_path_transcript, "w") as file:
+                file.write(full_transcript.strip())
+
             return full_transcript.strip()
         else:
             return f"Error: {data.get('message')}"

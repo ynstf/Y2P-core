@@ -3,14 +3,10 @@ import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
-from pathlib import Path
 
-# Get the current script directory
-current_dir = Path(__file__).resolve().parent
-# Go up one level and into "output/transcript.txt"
-file_path_transcript = current_dir.parent / "output" / "transcript.txt"
-file_path_manifest = current_dir.parent / "output" / "manifest.json"
-
+# FIXED: Use /tmp instead of relative paths
+file_path_transcript = "/tmp/transcript.txt"
+file_path_manifest = "/tmp/manifest.json"
 
 # ─── Load env vars ─────────────────────────────────────────────────────────────
 load_dotenv()

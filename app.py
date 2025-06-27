@@ -167,9 +167,8 @@ async def download_project(task_id: str):
             detail=f"Project not ready. Current status: {task['status']}",
         )
 
-    # Find the zip file
-    zip_path = f"output/{task_id}_project.zip"
-    # zip_path = "output/final_project.zip"
+    # FIXED: Find the zip file in /tmp
+    zip_path = f"/tmp/{task_id}_project.zip"
 
     if not os.path.exists(zip_path):
         raise HTTPException(status_code=404, detail="Project file not found")
@@ -197,9 +196,9 @@ async def delete_task(task_id: str):
     if task_id not in tasks:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # Remove files
-    zip_path = f"output/{task_id}_project.zip"
-    project_dir = f"output/{task_id}_project"
+    # FIXED: Remove files from /tmp
+    zip_path = f"/tmp/{task_id}_project.zip"
+    project_dir = f"/tmp/{task_id}_project"
 
     try:
         if os.path.exists(zip_path):
@@ -241,10 +240,11 @@ async def root():
     }
 
 
+# FIXED: Update the main section
 if __name__ == "__main__":
     import uvicorn
 
-    # Create output directory if it doesn't exist
-    os.makedirs("output", exist_ok=True)
+    # Create tmp directory if it doesn't exist (though it should)
+    os.makedirs("/tmp", exist_ok=True)
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

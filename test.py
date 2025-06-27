@@ -7,7 +7,8 @@ Shows how to submit a video, track progress, and download the result
 import requests
 import time
 
-API_BASE = "http://localhost:8000"
+# API_BASE = "http://localhost:8000"
+API_BASE = "https://y2-p-core.vercel.app/"
 
 
 def submit_video(url: str) -> str:
