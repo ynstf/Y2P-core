@@ -1,14 +1,26 @@
 {
-  "functions": {
-    "app.py": {
-      "runtime": "python3.9",
-      "maxDuration": 300
-    }
-  },
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/app"
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": { 
+        "maxLambdaSize": "15mb", 
+        "runtime": "python3.9" 
+      }
+    },
+    {
+      "src": "requirements.txt",
+      "use": "@vercel/python"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "PYTHONPATH": "$PYTHONPATH:/var/task"
+  }
 }
