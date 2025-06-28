@@ -102,7 +102,7 @@ def generate_manifest_from_transcript(
     # Use more explicit prompt similar to AI Studio
     prompt = f"""
         You are given the transcript of a tutorial video that walks through building
-        a structured project (folders, Python files, text files, etc.) and shows all code snippets.
+        a structured project (folders, Python files, or java files, or any programming language, text files, etc.) and shows all code snippets.
         Output **only** a single valid JSON object (no markdown, no prose) with exactly these keys:
 
         {{
