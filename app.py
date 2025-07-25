@@ -22,11 +22,17 @@ from services.scaffold_project import scaffold
 app = FastAPI(title="YouTube Tutorial Scaffold API", version="1.0.0")
 
 # Add CORS middleware for frontend access
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=[
+        "https://y2-p.vercel.app",
+        "https://y2-p.vercel.app/",  # With trailing slash
+        "http://localhost:3000",  # For local development (optional)
+        "http://127.0.0.1:3000",  # For local development (optional)
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "DELETE"],  # Only allow specific methods
     allow_headers=["*"],
 )
 
