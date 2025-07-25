@@ -19,6 +19,10 @@ from services.generate_manifest import (
 )
 from services.scaffold_project import scaffold
 
+from fastapi import Request
+import time
+
+
 # app = FastAPI(title="YouTube Tutorial Scaffold API", version="1.0.0")
 app = FastAPI(
     title="YouTube Tutorial Scaffold API",
@@ -228,6 +232,77 @@ async def delete_task(task_id: str):
     return {"message": "Task deleted successfully"}
 
 
+#################################################
+# Global request counter
+request_count = 0
+request_stats = {
+    "total_requests": 0,
+    "start_time": datetime.now().isoformat(),
+    "endpoints": {},
+}
+
+
+# Add this middleware function after your imports
+@app.middleware("http")
+async def count_requests_middleware(request: Request, call_next):
+    global request_count, request_stats
+
+    # Increment total counter
+    request_count += 1
+    request_stats["total_requests"] += 1
+
+    # Track per-endpoint stats
+    endpoint = f"{request.method} {request.url.path}"
+    if endpoint not in request_stats["endpoints"]:
+        request_stats["endpoints"][endpoint] = {
+            "count": 0,
+            "method": request.method,
+            "path": request.url.path,
+        }
+    request_stats["endpoints"][endpoint]["count"] += 1
+
+    # Log the request (optional)
+    print(
+        f"Request #{request_count}: {request.method} {request.url.path} - Client: {request.client.host}"
+    )
+
+    # Process the request
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    # Add processing time to response headers (optional)
+    response.headers["X-Process-Time"] = str(process_time)
+    response.headers["X-Request-Count"] = str(request_count)
+
+    return response
+
+
+# Add this new endpoint to get statistics
+@app.get("/stats")
+async def get_request_stats():
+    """
+    Get API request statistics
+    """
+    uptime_seconds = (
+        datetime.now() - datetime.fromisoformat(request_stats["start_time"])
+    ).total_seconds()
+
+    return {
+        "total_requests": request_stats["total_requests"],
+        "uptime_seconds": round(uptime_seconds, 2),
+        "uptime_hours": round(uptime_seconds / 3600, 2),
+        "requests_per_hour": round(
+            request_stats["total_requests"] / (uptime_seconds / 3600), 2
+        )
+        if uptime_seconds > 0
+        else 0,
+        "start_time": request_stats["start_time"],
+        "endpoints": request_stats["endpoints"],
+    }
+
+
+# Update your root endpoint to include request count
 @app.get("/")
 async def root():
     """
@@ -236,11 +311,20 @@ async def root():
     return {
         "message": "YouTube Tutorial Scaffold API",
         "version": "1.0.0",
+        "total_requests": request_stats["total_requests"],
+        "uptime_hours": round(
+            (
+                datetime.now() - datetime.fromisoformat(request_stats["start_time"])
+            ).total_seconds()
+            / 3600,
+            2,
+        ),
         "endpoints": {
             "POST /process": "Submit video for processing",
             "GET /status/{task_id}": "Check task status",
             "GET /download/{task_id}": "Download completed project",
             "GET /tasks": "List all tasks",
+            "GET /stats": "Get API request statistics",
             "DELETE /tasks/{task_id}": "Delete task and files",
         },
         "usage": {
