@@ -1,15 +1,16 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+# app.py
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import uuid
 import os
-import json
-import threading
-import time
+
+# import json
 from datetime import datetime
 from typing import Dict, Optional
-from collections import defaultdict
+# import asyncio
+# from pathlib import Path
 
 # Import your existing modules
 from services.download_transcript import get_youtube_transcript as transcript
@@ -18,6 +19,8 @@ from services.generate_manifest import (
 )
 from services.scaffold_project import scaffold
 
+
+# app = FastAPI(title="YouTube Tutorial Scaffold API", version="1.0.0")
 app = FastAPI(
     title="YouTube Tutorial Scaffold API",
     version="1.0.0",
@@ -25,8 +28,8 @@ app = FastAPI(
     redoc_url=None,  # Disable ReDoc
     openapi_url=None,  # Disable OpenAPI schema endpoint
 )
-
 # Add CORS middleware for frontend access
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -39,85 +42,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE"],  # Only allow specific methods
     allow_headers=["*"],
 )
-
-# File storage for request statistics
-STATS_FILE = "/tmp/api_stats.json"
-stats_lock = threading.Lock()
-
-
-def load_stats():
-    """Load statistics from file"""
-    try:
-        if os.path.exists(STATS_FILE):
-            with open(STATS_FILE, "r") as f:
-                return json.load(f)
-    except Exception as e:
-        print(f"Error loading stats: {e}")
-
-    # Return default stats if file doesn't exist or error
-    return {
-        "total_requests": 0,
-        "start_time": datetime.now().isoformat(),
-        "endpoints": {},
-    }
-
-
-def save_stats(stats_data):
-    """Save statistics to file"""
-    try:
-        with stats_lock:
-            with open(STATS_FILE, "w") as f:
-                json.dump(stats_data, f, indent=2)
-    except Exception as e:
-        print(f"Error saving stats: {e}")
-
-
-def get_current_stats():
-    """Get current statistics from file"""
-    return load_stats()
-
-
-def increment_request_counter(method, path, client_ip):
-    """Increment request counter and save to file"""
-    stats = load_stats()
-
-    # Increment total counter
-    stats["total_requests"] += 1
-
-    # Track per-endpoint stats
-    endpoint = f"{method} {path}"
-    if endpoint not in stats["endpoints"]:
-        stats["endpoints"][endpoint] = {"count": 0, "method": method, "path": path}
-    stats["endpoints"][endpoint]["count"] += 1
-
-    # Log the request
-    print(f"Request #{stats['total_requests']}: {method} {path} - Client: {client_ip}")
-
-    # Save to file
-    save_stats(stats)
-
-    return stats["total_requests"]
-
-
-# Request counter middleware
-@app.middleware("http")
-async def count_requests_middleware(request: Request, call_next):
-    # Process the request
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-
-    # Increment counter and save to file
-    total_requests = increment_request_counter(
-        request.method, request.url.path, request.client.host
-    )
-
-    # Add processing time to response headers
-    response.headers["X-Process-Time"] = str(round(process_time, 4))
-    response.headers["X-Request-Count"] = str(total_requests)
-
-    return response
-
 
 # In-memory task storage (in production, use Redis or database)
 tasks: Dict[str, Dict] = {}
@@ -256,7 +180,7 @@ async def download_project(task_id: str):
             detail=f"Project not ready. Current status: {task['status']}",
         )
 
-    # Find the zip file in /tmp
+    # FIXED: Find the zip file in /tmp
     zip_path = f"/tmp/{task_id}_project.zip"
 
     if not os.path.exists(zip_path):
@@ -285,7 +209,7 @@ async def delete_task(task_id: str):
     if task_id not in tasks:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    # Remove files from /tmp
+    # FIXED: Remove files from /tmp
     zip_path = f"/tmp/{task_id}_project.zip"
     project_dir = f"/tmp/{task_id}_project"
 
@@ -305,56 +229,23 @@ async def delete_task(task_id: str):
     return {"message": "Task deleted successfully"}
 
 
-@app.get("/stats")
-async def get_request_stats():
-    """
-    Get API request statistics
-    """
-    stats = get_current_stats()
-
-    try:
-        start_time_dt = datetime.fromisoformat(stats["start_time"])
-        uptime_seconds = (datetime.now() - start_time_dt).total_seconds()
-    except:
-        uptime_seconds = 0
-
-    return {
-        "total_requests": stats["total_requests"],
-        "uptime_seconds": round(uptime_seconds, 2),
-        "uptime_hours": round(uptime_seconds / 3600, 2),
-        "requests_per_hour": round(stats["total_requests"] / (uptime_seconds / 3600), 2)
-        if uptime_seconds > 0
-        else 0,
-        "start_time": stats["start_time"],
-        "endpoints": stats["endpoints"],
-        "file_location": STATS_FILE,
-    }
+#################################################
 
 
+# Update your root endpoint to include request count
 @app.get("/")
 async def root():
     """
     API health check and documentation
     """
-    stats = get_current_stats()
-
-    try:
-        start_time_dt = datetime.fromisoformat(stats["start_time"])
-        uptime_hours = round((datetime.now() - start_time_dt).total_seconds() / 3600, 2)
-    except:
-        uptime_hours = 0
-
     return {
         "message": "YouTube Tutorial Scaffold API",
         "version": "1.0.0",
-        "total_requests": stats["total_requests"],
-        "uptime_hours": uptime_hours,
         "endpoints": {
             "POST /process": "Submit video for processing",
             "GET /status/{task_id}": "Check task status",
             "GET /download/{task_id}": "Download completed project",
             "GET /tasks": "List all tasks",
-            "GET /stats": "Get API request statistics",
             "DELETE /tasks/{task_id}": "Delete task and files",
         },
         "usage": {
@@ -366,10 +257,11 @@ async def root():
     }
 
 
+# FIXED: Update the main section
 if __name__ == "__main__":
     import uvicorn
 
-    # Create tmp directory if it doesn't exist
+    # Create tmp directory if it doesn't exist (though it should)
     os.makedirs("/tmp", exist_ok=True)
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
